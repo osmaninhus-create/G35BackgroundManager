@@ -1,1 +1,30 @@
-
+name: Build APK
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar projeto
+        run: |
+          f=$(ls -1 | grep -v README | head -1)
+          echo "Arquivo: $f"
+          if [ "$(head -c2 "$f")" = "PK" ]; then cp "$f" g35.zip; else base64 -d "$f" > g35.zip; fi
+          unzip -q g35.zip -d proj
+          d=$(dirname "$(find proj -name settings.gradle.kts | head -1)")
+          echo "PROJ=$d" >> $GITHUB_ENV
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+      - name: Compilar
+        run: cd "$PROJ" && gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: G35-apk
+          path: proj/**/app-debug.apk
