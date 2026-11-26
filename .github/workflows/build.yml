@@ -10,7 +10,9 @@ jobs:
       - name: Preparar projeto
         run: |
           ls -la
-          base64 -d "g35 (1).txt" > /tmp/t.zip
+          f=$(ls g35v*.txt | sort -V | tail -1)
+          echo "Usando: $f"
+          base64 -d "$f" > /tmp/t.zip
           mkdir proj
           unzip -q /tmp/t.zip -d proj
           s=$(find proj -name settings.gradle.kts | head -1)
